@@ -370,8 +370,68 @@ body.dark footer { background:var(--dark2); }
 .gear-svg-r { animation:spin 20s linear infinite reverse; }
 @keyframes spin { to { transform:rotate(360deg); } }
 
-/* LOADING BAR */
-.loading { display:none; }
+/* ===== EDIT MODE ===== */
+.edit-bar {
+  position:fixed; bottom:24px; left:50%; transform:translateX(-50%);
+  z-index:300; display:flex; align-items:center; gap:10px;
+  background:var(--copper-dark); border:1.5px solid var(--copper);
+  border-radius:40px; padding:10px 20px;
+  box-shadow:0 8px 32px rgba(0,0,0,0.35);
+  font-family:'Cinzel',serif; font-size:11px; letter-spacing:1.5px;
+  color:#fff; transition:all 0.3s;
+}
+body.dark .edit-bar { background:#1a1208; }
+.edit-bar.editing { background:var(--copper); }
+.edit-bar-dot { width:8px; height:8px; border-radius:50%; background:#fff; opacity:0.5; }
+.edit-bar.editing .edit-bar-dot { background:#fff; opacity:1; animation:blink 1s infinite; }
+@keyframes blink { 0%,100%{opacity:1} 50%{opacity:0.3} }
+.edit-toggle {
+  background:none; border:none; color:#fff; cursor:pointer;
+  font-family:'Cinzel',serif; font-size:11px; letter-spacing:1.5px;
+  padding:0; transition:opacity 0.2s;
+}
+.edit-toggle:hover { opacity:0.8; }
+.edit-sep { width:1px; height:16px; background:rgba(255,255,255,0.3); }
+.edit-save {
+  background:rgba(255,255,255,0.2); border:1px solid rgba(255,255,255,0.4);
+  color:#fff; cursor:pointer; border-radius:20px;
+  font-family:'Cinzel',serif; font-size:10px; letter-spacing:1px;
+  padding:4px 14px; transition:all 0.2s; display:none;
+}
+.edit-bar.editing .edit-save { display:inline-block; }
+.edit-save:hover { background:rgba(255,255,255,0.35); }
+
+/* Editable elements in edit mode */
+body.editing [data-editable] {
+  outline:1.5px dashed rgba(200,147,74,0.5);
+  border-radius:3px; cursor:text; position:relative;
+  transition:outline 0.15s;
+}
+body.editing [data-editable]:hover {
+  outline:2px solid var(--copper);
+  background:rgba(200,147,74,0.06);
+}
+body.editing [data-editable]:focus {
+  outline:2px solid var(--copper);
+  background:rgba(200,147,74,0.1);
+}
+body.editing [data-editable]::before {
+  content:'✏';
+  position:absolute; top:-10px; right:-4px;
+  font-size:10px; opacity:0; transition:opacity 0.15s;
+  pointer-events:none; color:var(--copper);
+}
+body.editing [data-editable]:hover::before { opacity:1; }
+
+/* Toast */
+.edit-toast {
+  position:fixed; bottom:80px; left:50%; transform:translateX(-50%);
+  background:var(--copper-dark); color:#fff; border:1px solid var(--copper);
+  padding:8px 20px; border-radius:20px; font-family:'Cinzel',serif;
+  font-size:11px; letter-spacing:1px; z-index:400;
+  opacity:0; transition:opacity 0.3s; pointer-events:none;
+}
+.edit-toast.show { opacity:1; }
 
 @media(max-width:768px){
   nav { padding:12px 16px; }
@@ -386,6 +446,15 @@ body.dark footer { background:var(--dark2); }
 </style>
 </head>
 <body>
+
+<!-- EDIT BAR -->
+<div class="edit-bar" id="edit-bar">
+  <div class="edit-bar-dot"></div>
+  <button class="edit-toggle" onclick="toggleEdit()" id="edit-label">✏ Mode Édition</button>
+  <div class="edit-sep"></div>
+  <button class="edit-save" onclick="saveEdits()">💾 Télécharger</button>
+</div>
+<div class="edit-toast" id="edit-toast"></div>
 
 <nav>
   <div class="logo" onclick="goPage('home')">THÉO DERWEY<span>Game Designer · Directeur Créatif</span></div>
@@ -420,8 +489,8 @@ body.dark footer { background:var(--dark2); }
     <canvas id="hero-canvas"></canvas>
   </div>
   <div class="hero-inner">
-    <h1>Construire des <em>Mondes</em>,<br>Capturer des <em>Instants</em></h1>
-    <p class="hero-sub">Game Designer plein d'idées, passionné de création et de photographie. 7 univers en cours — des expériences qui n'attendent qu'à vivre.</p>
+    <h1 data-editable contenteditable="false">Construire des <em>Mondes</em>,<br>Capturer des <em>Instants</em></h1>
+    <p class="hero-sub" data-editable contenteditable="false">Game Designer plein d'idées, passionné de création et de photographie. 7 univers en cours — des expériences qui n'attendent qu'à vivre.</p>
     <div class="hero-tags">
       <span class="htag">Game Design</span>
       <span class="htag">World Building</span>
@@ -544,14 +613,14 @@ body.dark footer { background:var(--dark2); }
         <div class="profile-card">
           <div class="profile-badge">PROFIL PRINCIPAL</div>
           <div class="profile-icon">🎬</div>
-          <div class="profile-role">Directeur Créatif en devenir</div>
-          <div class="profile-desc">Tu ne crées pas juste des mécaniques ou des univers — tu pilotes une vision globale cohérente. C'est exactement le profil d'un Creative Director en studio.</div>
+          <div class="profile-role" data-editable contenteditable="false">Directeur Créatif en devenir</div>
+          <div class="profile-desc" data-editable contenteditable="false">Tu ne crées pas juste des mécaniques ou des univers — tu pilotes une vision globale cohérente. C'est exactement le profil d'un Creative Director en studio.</div>
         </div>
         <div class="about-text">
-          <p>Je suis <strong>Théo Derwey</strong>, un créatif débordant d'idées, passionné par l'univers du jeu vidéo et la conception de mondes imaginaires.</p>
-          <p>Je ne suis pas le meilleur en code ni en dessin technique — mais ce qui me définit c'est ma <strong>vision</strong> : 7 projets en cours, chacun avec un univers, des mécaniques et une identité propre.</p>
-          <p>La <strong>photographie</strong> est mon autre passion : capturer la lumière, l'instant, l'atmosphère — une sensibilité qui nourrit directement ma direction artistique.</p>
-          <p>Objectif : intégrer une école de jeux vidéo pour transformer ces concepts en expériences jouables.</p>
+          <p data-editable contenteditable="false">Je suis <strong>Théo Derwey</strong>, un créatif débordant d'idées, passionné par l'univers du jeu vidéo et la conception de mondes imaginaires.</p>
+          <p data-editable contenteditable="false">Je ne suis pas le meilleur en code ni en dessin technique — mais ce qui me définit c'est ma <strong>vision</strong> : 7 projets en cours, chacun avec un univers, des mécaniques et une identité propre.</p>
+          <p data-editable contenteditable="false">La <strong>photographie</strong> est mon autre passion : capturer la lumière, l'instant, l'atmosphère — une sensibilité qui nourrit directement ma direction artistique.</p>
+          <p data-editable contenteditable="false">Objectif : intégrer une école de jeux vidéo pour transformer ces concepts en expériences jouables.</p>
         </div>
       </div>
       <div class="skills-block">
@@ -574,20 +643,20 @@ body.dark footer { background:var(--dark2); }
     <div class="section-title">Blog & Devlog</div>
     <div class="blog-list">
       <div class="bitem">
-        <div style="min-width:72px"><div class="bdate">Avr 2026</div></div>
-        <div><div class="btitle">Concevoir 7 univers en parallèle — méthode et chaos créatif</div><div class="bexcerpt">Comment je gère l'inspiration débordante sans perdre le fil de chaque projet, et pourquoi la quantité nourrit la qualité...</div></div>
+        <div style="min-width:72px"><div class="bdate" data-editable contenteditable="false">Avr 2026</div></div>
+        <div><div class="btitle" data-editable contenteditable="false">Concevoir 7 univers en parallèle — méthode et chaos créatif</div><div class="bexcerpt" data-editable contenteditable="false">Comment je gère l'inspiration débordante sans perdre le fil de chaque projet, et pourquoi la quantité nourrit la qualité...</div></div>
       </div>
       <div class="bitem">
-        <div style="min-width:72px"><div class="bdate">Mar 2026</div></div>
-        <div><div class="btitle">Photographie et direction artistique en game design</div><div class="bexcerpt">Comment mon regard de photographe influence la conception de mes niveaux et ambiances. La lumière, la composition, l'instant...</div></div>
+        <div style="min-width:72px"><div class="bdate" data-editable contenteditable="false">Mar 2026</div></div>
+        <div><div class="btitle" data-editable contenteditable="false">Photographie et direction artistique en game design</div><div class="bexcerpt" data-editable contenteditable="false">Comment mon regard de photographe influence la conception de mes niveaux et ambiances. La lumière, la composition, l'instant...</div></div>
       </div>
       <div class="bitem">
-        <div style="min-width:72px"><div class="bdate">Fév 2026</div></div>
-        <div><div class="btitle">De l'idée au GDD — retour sur Shot-HOT-Paper</div><div class="bexcerpt">Comment un concept absurde de personnages en papier devient un shooter multijoueur avec 4 modes et un système d'armes original...</div></div>
+        <div style="min-width:72px"><div class="bdate" data-editable contenteditable="false">Fév 2026</div></div>
+        <div><div class="btitle" data-editable contenteditable="false">De l'idée au GDD — retour sur Shot-HOT-Paper</div><div class="bexcerpt" data-editable contenteditable="false">Comment un concept absurde de personnages en papier devient un shooter multijoueur avec 4 modes et un système d'armes original...</div></div>
       </div>
       <div class="bitem">
-        <div style="min-width:72px"><div class="bdate">Jan 2026</div></div>
-        <div><div class="btitle">Pourquoi l'ambiance prime sur la mécanique</div><div class="bexcerpt">L'Oracle, Richemond, Last World — et ce que j'ai appris sur la narration atmosphérique en parcourant mes références...</div></div>
+        <div style="min-width:72px"><div class="bdate" data-editable contenteditable="false">Jan 2026</div></div>
+        <div><div class="btitle" data-editable contenteditable="false">Pourquoi l'ambiance prime sur la mécanique</div><div class="bexcerpt" data-editable contenteditable="false">L'Oracle, Richemond, Last World — et ce que j'ai appris sur la narration atmosphérique en parcourant mes références...</div></div>
       </div>
     </div>
   </div>
@@ -599,8 +668,8 @@ body.dark footer { background:var(--dark2); }
     <div class="section-title">Contact</div>
     <div class="contact-box">
       <span class="contact-gear">⚙️</span>
-      <div class="contact-title">Travaillons ensemble</div>
-      <p class="contact-desc">Candidat motivé pour intégrer une école de jeux vidéo. 7 projets en cours, une passion sans limite pour la création de mondes et d'expériences. N'hésitez pas à me contacter !</p>
+      <div class="contact-title" data-editable contenteditable="false">Travaillons ensemble</div>
+      <p class="contact-desc" data-editable contenteditable="false">Candidat motivé pour intégrer une école de jeux vidéo. 7 projets en cours, une passion sans limite pour la création de mondes et d'expériences. N'hésitez pas à me contacter !</p>
       <div class="contact-links">
         <a class="clink" href="mailto:theo@example.com">✉ Email</a>
         <a class="clink" href="#" target="_blank">👤 LinkedIn</a>
@@ -719,7 +788,57 @@ function frame(){
   ships.forEach((s,i)=>{s.x+=s.spd;if(s.x>W+140)s.x=-140;drawShip(s.x,s.y+Math.sin(T*.013+i*2)*8,s.sc);});
   T++;requestAnimationFrame(frame);
 }
-frame();
-</script>
+
+// ===== EDIT MODE =====
+let editMode = false;
+
+function toggleEdit() {
+  editMode = !editMode;
+  document.body.classList.toggle('editing', editMode);
+  const bar = document.getElementById('edit-bar');
+  const label = document.getElementById('edit-label');
+  bar.classList.toggle('editing', editMode);
+  label.textContent = editMode ? '✕ Quitter l\'édition' : '✏ Mode Édition';
+
+  document.querySelectorAll('[data-editable]').forEach(el => {
+    el.contentEditable = editMode ? 'true' : 'false';
+  });
+
+  if (editMode) {
+    showToast('Cliquez sur n\'importe quel texte pour le modifier');
+  } else {
+    showToast('Modifications sauvegardées en mémoire');
+  }
+}
+
+function showToast(msg) {
+  const t = document.getElementById('edit-toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 2800);
+}
+
+function saveEdits() {
+  const html = '<!DOCTYPE html>\n' + document.documentElement.outerHTML;
+  // Remove contenteditable attrs from saved file
+  const clean = html
+    .replace(/contenteditable="true"/g, 'contenteditable="false"')
+    .replace(/class="editing"/g, 'class=""')
+    .replace(/ editing/g, '');
+  const blob = new Blob([clean], {type:'text/html'});
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(blob);
+  a.download = 'index.html';
+  a.click();
+  showToast('✅ Fichier téléchargé !');
+}
+
+// Prevent accidental nav clicks while editing
+document.querySelectorAll('.nav-links a').forEach(a => {
+  a.addEventListener('click', e => {
+    if (editMode && e.target.closest('[data-editable]')) e.stopPropagation();
+  });
+});
+
 </body>
 </html>
